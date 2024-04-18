@@ -1,0 +1,416 @@
+First fit:
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Function to perform memory allocation using First Fit algorithm
+void firstFit(vector<int>& memory, vector<int>& processes) {
+    int m = memory.size();
+    int n = processes.size();
+
+    // Vector to track whether a memory block is allocated or not
+    vector<bool> allocated(m, false);
+
+    for (int i = 0; i < n; i++) {
+        bool found = false;
+        for (int j = 0; j < m; j++) {
+            if (!allocated[j] && memory[j] >= processes[i]) {
+                allocated[j] = true;
+                cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << j + 1 << endl;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            cout << "Process " << i + 1 << " of size " << processes[i] << " could not be allocated." << endl;
+        }
+    }
+}
+
+int main() {
+    int m, n;
+
+    // Getting the number of memory blocks and processes from the user
+    cout << "Enter the number of memory blocks: ";
+    cin >> m;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<int> memory(m);
+    vector<int> processes(n);
+
+    // Taking memory allocation from the user
+    cout << "Enter the sizes of memory blocks:" << endl;
+    for (int i = 0; i < m; i++) {
+        cout << "Memory Block " << i + 1 << ": ";
+        cin >> memory[i];
+    }
+
+    // Taking process sizes from the user
+    cout << "Enter the sizes of processes:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    // Perform memory allocation using First Fit
+    firstFit(memory, processes);
+
+    return 0;
+}
+
+
+Best fit:
+
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+// Function to perform memory allocation using Best Fit algorithm
+void bestFit(vector<int>& memory, vector<int>& processes) {
+    int m = memory.size();
+    int n = processes.size();
+
+    // Vector to track whether a memory block is allocated or not
+    vector<bool> allocated(m, false);
+
+    for (int i = 0; i < n; i++) {
+        int bestFitIndex = -1;
+        int minFragment = INT_MAX;
+        for (int j = 0; j < m; j++) {
+            if (!allocated[j] && memory[j] >= processes[i]) {
+                int fragment = memory[j] - processes[i];
+                if (fragment < minFragment) {
+                    minFragment = fragment;
+                    bestFitIndex = j;
+                }
+            }
+        }
+        if (bestFitIndex != -1) {
+            allocated[bestFitIndex] = true;
+            cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << bestFitIndex + 1 << endl;
+        } else {
+            cout << "Process " << i + 1 << " of size " << processes[i] << " could not be allocated." << endl;
+        }
+    }
+}
+
+int main() {
+    int m, n;
+
+    // Getting the number of memory blocks and processes from the user
+    cout << "Enter the number of memory blocks: ";
+    cin >> m;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<int> memory(m);
+    vector<int> processes(n);
+
+    // Taking memory allocation from the user
+    cout << "Enter the sizes of memory blocks:" << endl;
+    for (int i = 0; i < m; i++) {
+        cout << "Memory Block " << i + 1 << ": ";
+        cin >> memory[i];
+    }
+
+    // Taking process sizes from the user
+    cout << "Enter the sizes of processes:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    // Perform memory allocation using Best Fit
+    cout << "\nMemory Allocation using Best Fit:\n";
+    bestFit(memory, processes);
+
+    return 0;
+}
+
+
+
+Worst fit:
+
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+// Function to perform memory allocation using Worst Fit algorithm
+void worstFit(vector<int>& memory, vector<int>& processes) {
+    int m = memory.size();
+    int n = processes.size();
+
+    // Vector to track whether a memory block is allocated or not
+    vector<bool> allocated(m, false);
+
+    for (int i = 0; i < n; i++) {
+        int worstFitIndex = -1;
+        int maxFragment = INT_MIN;
+        for (int j = 0; j < m; j++) {
+            if (!allocated[j] && memory[j] >= processes[i]) {
+                int fragment = memory[j] - processes[i];
+                if (fragment > maxFragment) {
+                    maxFragment = fragment;
+                    worstFitIndex = j;
+                }
+            }
+        }
+        if (worstFitIndex != -1) {
+            allocated[worstFitIndex] = true;
+            cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << worstFitIndex + 1 << endl;
+        } else {
+            cout << "Process " << i + 1 << " of size " << processes[i] << " could not be allocated." << endl;
+        }
+    }
+}
+
+int main() {
+    int m, n;
+
+    // Getting the number of memory blocks and processes from the user
+    cout << "Enter the number of memory blocks: ";
+    cin >> m;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<int> memory(m);
+    vector<int> processes(n);
+
+    // Taking memory allocation from the user
+    cout << "Enter the sizes of memory blocks:" << endl;
+    for (int i = 0; i < m; i++) {
+        cout << "Memory Block " << i + 1 << ": ";
+        cin >> memory[i];
+    }
+
+    // Taking process sizes from the user
+    cout << "Enter the sizes of processes:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    // Perform memory allocation using Worst Fit
+    cout << "\nMemory Allocation using Worst Fit:\n";
+    worstFit(memory, processes);
+
+    return 0;
+}
+
+
+
+Next fit:
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Function to perform memory allocation using Next Fit algorithm
+void nextFit(vector<int>& memory, vector<int>& processes) {
+    int m = memory.size();
+    int n = processes.size();
+
+    // Initialize the index of the last block allocated
+    int lastAllocatedIndex = -1;
+
+    // Vector to keep track of allocated memory blocks
+    vector<bool> allocatedBlocks(m, false);
+
+    for (int i = 0; i < n; i++) {
+        bool allocated = false;
+        // Start from the next block after the last allocated block
+        for (int j = (lastAllocatedIndex + 1) % m; j != lastAllocatedIndex; j = (j + 1) % m) {
+            if (!allocatedBlocks[j] && memory[j] >= processes[i]) {
+                memory[j] -= processes[i];
+                cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << j + 1 << endl;
+                allocated = true;
+                allocatedBlocks[j] = true;
+                lastAllocatedIndex = j;
+                break;
+            }
+        }
+        if (!allocated) {
+            cout << "Process " << i + 1 << " of size " << processes[i] << " could not be allocated." << endl;
+        }
+    }
+}
+
+int main() {
+    int m, n;
+
+    // Getting the number of memory blocks and processes from the user
+    cout << "Enter the number of memory blocks: ";
+    cin >> m;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<int> memory(m);
+    vector<int> processes(n);
+
+    // Taking memory allocation from the user
+    cout << "Enter the sizes of memory blocks:" << endl;
+    for (int i = 0; i < m; i++) {
+        cout << "Memory Block " << i + 1 << ": ";
+        cin >> memory[i];
+    }
+
+    // Taking process sizes from the user
+    cout << "Enter the sizes of processes:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    // Perform memory allocation using Next Fit
+    cout << "\nMemory Allocation using Next Fit:\n";
+    nextFit(memory, processes);
+
+    return 0;
+}
+
+
+
+
+
+
+merge code:
+
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+const int FIRST_FIT = 1;
+const int BEST_FIT = 2;
+const int WORST_FIT = 3;
+const int NEXT_FIT = 4;
+
+// Function to perform memory allocation using various allocation strategies
+void memoryAllocation(vector<int>& memory, vector<int>& processes, int strategy) {
+    int m = memory.size();
+    int n = processes.size();
+
+    // Vector to track whether a memory block is allocated or not
+    vector<bool> allocated(m, false);
+
+    // Initialize the index of the last block allocated (for Next Fit)
+    int lastAllocatedIndex = -1;
+
+    // Vector to keep track of allocated memory blocks (for Next Fit)
+    vector<bool> allocatedBlocks(m, false);
+
+    for (int i = 0; i < n; i++) {
+        bool allocatedSuccess = false;
+        int blockIndex = -1;
+        int minFragment = INT_MAX;
+        int maxFragment = INT_MIN;
+
+        switch (strategy) {
+            case FIRST_FIT:
+                for (int j = 0; j < m; j++) {
+                    if (!allocated[j] && memory[j] >= processes[i]) {
+                        allocated[j] = true;
+                        cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << j + 1 << " (First Fit)" << endl;
+                        allocatedSuccess = true;
+                        break;
+                    }
+                }
+                break;
+            case BEST_FIT:
+                for (int j = 0; j < m; j++) {
+                    if (!allocated[j] && memory[j] >= processes[i]) {
+                        int fragment = memory[j] - processes[i];
+                        if (fragment < minFragment) {
+                            minFragment = fragment;
+                            blockIndex = j;
+                        }
+                    }
+                }
+                if (blockIndex != -1) {
+                    allocated[blockIndex] = true;
+                    cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << blockIndex + 1 << " (Best Fit)" << endl;
+                    allocatedSuccess = true;
+                }
+                break;
+            case WORST_FIT:
+                for (int j = 0; j < m; j++) {
+                    if (!allocated[j] && memory[j] >= processes[i]) {
+                        int fragment = memory[j] - processes[i];
+                        if (fragment > maxFragment) {
+                            maxFragment = fragment;
+                            blockIndex = j;
+                        }
+                    }
+                }
+                if (blockIndex != -1) {
+                    allocated[blockIndex] = true;
+                    cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << blockIndex + 1 << " (Worst Fit)" << endl;
+                    allocatedSuccess = true;
+                }
+                break;
+            case NEXT_FIT:
+                for (int j = (lastAllocatedIndex + 1) % m; j != lastAllocatedIndex; j = (j + 1) % m) {
+                    if (!allocatedBlocks[j] && memory[j] >= processes[i]) {
+                        memory[j] -= processes[i];
+                        cout << "Process " << i + 1 << " of size " << processes[i] << " is allocated to Memory Block " << j + 1 << " (Next Fit)" << endl;
+                        allocatedSuccess = true;
+                        allocatedBlocks[j] = true;
+                        lastAllocatedIndex = j;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        if (!allocatedSuccess) {
+            cout << "Process " << i + 1 << " of size " << processes[i] << " could not be allocated." << endl;
+        }
+    }
+}
+
+int main() {
+    int m, n;
+
+    // Getting the number of memory blocks and processes from the user
+    cout << "Enter the number of memory blocks: ";
+    cin >> m;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<int> memory(m);
+    vector<int> processes(n);
+
+    // Taking memory allocation from the user
+    cout << "Enter the sizes of memory blocks:" << endl;
+    for (int i = 0; i < m; i++) {
+        cout << "Memory Block " << i + 1 << ": ";
+        cin >> memory[i];
+    }
+
+    // Taking process sizes from the user
+    cout << "Enter the sizes of processes:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    // Perform memory allocation using different strategies
+    cout << "\nMemory Allocation using First Fit:\n";
+    memoryAllocation(memory, processes, FIRST_FIT);
+
+    cout << "\nMemory Allocation using Best Fit:\n";
+    memoryAllocation(memory, processes, BEST_FIT);
+
+    cout << "\nMemory Allocation using Worst Fit:\n";
+    memoryAllocation(memory, processes, WORST_FIT);
+
+    cout << "\nMemory Allocation using Next Fit:\n";
+    memoryAllocation(memory, processes, NEXT_FIT);
+
+    return 0;
+}
+

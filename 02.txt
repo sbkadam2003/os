@@ -1,0 +1,1078 @@
+// C++ implementaion of FCFS CPU Scheduling Algorithm.
+#include <iostream>
+#include<vector>
+#include <algorithm> 
+#include <iomanip>
+
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int start_time;  // Time at which process gets CPU first Time.
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+};
+
+bool compareArrival(process p1, process p2) 
+{ 
+    return p1.arrival_time < p2.arrival_time;
+}
+
+bool compareID(process p1, process p2) 
+{  
+    return p1.pid < p2.pid;
+}
+
+int main() {
+
+    int n;
+    struct process p[100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_idle_time = 0;
+
+    //order of processes in which they are executing.
+    vector<int>Order_Of_Execution;
+    cout << setprecision(2) << fixed;
+
+    cout<<"\n\nEnter the number of processes: ";
+    cin>>n;
+    cout<<endl<<endl;
+    for(int i = 0; i < n; i++) {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+        p[i].pid = i+1;
+        cout<<endl;
+    }
+
+    sort(p,p+n,compareArrival);
+
+    for(int i = 0; i < n; i++) 
+    {
+
+        if(i == 0){
+
+          p[i].start_time = p[i].arrival_time;
+        }
+        else{
+
+          p[i].start_time = max(p[i-1].completion_time , p[i].arrival_time);  
+        }
+
+        p[i].completion_time = p[i].start_time + p[i].burst_time;
+        p[i].turnaround_time = p[i].completion_time - p[i].arrival_time;
+        p[i].waiting_time = p[i].turnaround_time - p[i].burst_time;
+
+        total_turnaround_time += p[i].turnaround_time;
+        total_waiting_time += p[i].waiting_time;
+        //order of processes in which they are executing.
+        Order_Of_Execution.push_back(p[i].pid);
+
+        if(i == 0){
+
+           total_idle_time += p[i].arrival_time;
+        }
+        else{
+
+           total_idle_time += p[i].start_time - p[i-1].completion_time;
+        }
+    }
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    cpu_utilisation = ((p[n-1].completion_time - total_idle_time) / (float) p[n-1].completion_time)*100;
+
+    sort(p,p+n,compareID); 
+
+    int min_arrival_time = 10000000;
+    int max_completion_time = -1;
+    for(int i = 0; i < n; i++) 
+    {
+        min_arrival_time = min(min_arrival_time,p[i].arrival_time);
+        max_completion_time = max(max_completion_time,p[i].completion_time);
+    }
+
+    cout<<endl;
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<"\t"<<"\n"<<endl;
+    }
+
+
+    // Gantt chart... 
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<n; i++){
+        cout <<"|   "<<Order_Of_Execution[i] << "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+    int k;
+    for ( k = 0; k < n; k++)
+    {
+        // start time according to an order of execution.
+        for (int j = 0; j < n ; j++)
+        {
+            if(Order_Of_Execution[k] == p[j].pid)
+            {
+               cout << p[j].start_time<< "\t";
+            }
+        }    
+    } 
+
+    //
+    cout<<max_completion_time<<endl<<endl;
+
+
+    cout<<"\nAverage Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"\nAverage Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"\nCPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<""<<endl;
+
+    return 0;
+}
+
+
+
+
+
+
+C++ implementaion of SJF(Preemptive) CPU Scheduling Algorithm.
+This algorithm is also known as SRTF (Shortest Remaining Time First).
+#include <iostream>
+#include<vector>
+#include <algorithm> 
+#include <iomanip>
+#include <string.h> 
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int start_time; // Time at which process gets CPU first time. 
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+
+};
+
+int main () {
+
+    int n;
+    struct process p [100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_idle_time = 0;
+    int burst_remaining[100];
+    int is_completed[100];
+    memset(is_completed,0,sizeof(is_completed));
+
+    //order of processes in which they are executing.
+    vector<int>Order_Of_Execution; 
+    vector<int>Time;    
+
+    cout << setprecision(2) << fixed;
+
+    cout<<"\nEnter the number of processes: ";
+    cin>>n;
+    cout<<endl;
+
+    for(int i = 0; i < n; i++) {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+        p[i].pid = i+1;
+        //initially update burst_remaining time with total burst time.
+        burst_remaining[i] = p[i].burst_time;
+        cout<<endl;
+    }
+
+    int current_time = 0 , prev_time = 0;
+    int completed = 0;
+    int prev = 0 , Prev_idx = -1;
+
+    while(completed != n) 
+    {
+        int idx = -1;
+        int mn = 10000000;
+        for(int i = 0; i < n; i++) 
+        {
+            if(p[i].arrival_time <= current_time && is_completed[i] == 0) 
+            {
+                // compute least burst time
+                if(burst_remaining[i] < mn) 
+                {
+                    mn = burst_remaining[i];
+                    idx = i;
+                }
+
+                // compare arrival time when 'least burst time' will be same for two process
+                if(burst_remaining[i] == mn) 
+                {
+                    if(p[i].arrival_time < p[idx].arrival_time) 
+                    {
+                        mn = burst_remaining[i];
+                        idx = i;
+                    }
+                }
+            }
+        }
+
+        if(idx != -1) 
+        {
+            // To check same process is coming again Or 
+            // Another new process with burst_remaining time exactly equal to burst_time is coming after context Switching.
+            if(burst_remaining[idx] == p[idx].burst_time) 
+            {
+                p[idx].start_time = current_time;
+                prev_time = current_time;
+                total_idle_time += p[idx].start_time - prev;
+            }
+
+            // always proceed with 1 unit of time to check preemption.
+            burst_remaining[idx] -= 1;
+
+
+            if(Prev_idx != idx)
+            {
+               if(find(Order_Of_Execution.begin(),Order_Of_Execution.end(),p[idx].pid) != Order_Of_Execution.end())
+               { 
+                   // Agar same process ek ya ek se jyada baar pahle aa chuka hai toh yeh hoga 
+                   // but only for first Unit of time. 
+                   prev_time = current_time;
+               } 
+               Order_Of_Execution.push_back(p[idx].pid);
+               Time.push_back(prev_time);
+            }
+            Prev_idx = idx;
+            prev_time = current_time; // 3
+            current_time++; // 4
+            prev = current_time; 
+
+            // If any process will have burst time zero then it has been finished.
+            if(burst_remaining[idx] == 0) 
+            {
+                p[idx].completion_time = current_time;
+                p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+                p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+
+                total_turnaround_time += p[idx].turnaround_time;
+                total_waiting_time += p[idx].waiting_time;
+
+
+                // Mark one process gets completed  
+                is_completed[idx] = 1;
+                completed++;
+            }
+        }
+        else 
+        { 
+            // To skip ideal time for CPU if it comes... 
+            current_time++;
+        }  
+    }
+
+    int min_arrival_time = 10000000;
+    int max_completion_time = -1;
+
+    for(int i = 0; i < n; i++) 
+    {
+        min_arrival_time = min(min_arrival_time,p[i].arrival_time);
+        max_completion_time = max(max_completion_time,p[i].completion_time);
+    }
+
+    // Final completion time
+    Time.push_back(max_completion_time);
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    cpu_utilisation = ((max_completion_time - total_idle_time) / (float) max_completion_time )*100;
+
+
+    cout<<endl<<endl;
+
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<"\t"<<"\n"<<endl;
+    }
+
+    // Gantt chart...
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<Order_Of_Execution.size(); i++)
+    {
+        cout <<"|   "<<Order_Of_Execution[i]<< "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+
+    for (int i = 0; i < Time.size() ; i++)
+    {
+          cout <<Time[i]<< "\t";
+    }
+
+    cout<<"\n\nAverage Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"Average Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"CPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<""<<endl;
+
+  return 0;
+}
+
+
+
+
+
+
+// C++ implementaion of SJF(Non - Preemptive) CPU Scheduling Algorithm
+#include <iostream>
+#include<vector>
+#include <algorithm> 
+#include <iomanip>
+#include <string.h> 
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time; 
+    int start_time; // Time at which process gets CPU first Time.
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+};
+
+int main() 
+{
+
+    int n;
+    struct process p[100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_idle_time = 0;
+    int is_completed[100];
+    memset(is_completed,0,sizeof(is_completed));
+
+    vector<int>Order_Of_Execution; //order of processes in which they are executing.
+    cout << setprecision(2) << fixed;
+
+    cout<<"\nEnter the number of processes: ";
+    cin>>n;
+    cout<<endl;
+
+    for(int i = 0; i < n; i++) {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+        p[i].pid = i+1;
+        cout<<endl;
+    }
+
+    int current_time = 0;
+    int completed = 0;
+    int prev = 0;
+
+    while(completed != n) 
+    {
+        int idx = -1;
+        int mn = 10000000;
+
+        for(int i = 0; i < n; i++) 
+        {
+            if(p[i].arrival_time <= current_time && is_completed[i] == 0) 
+            {
+                // compute least burst time
+                if(p[i].burst_time < mn) {
+                    mn = p[i].burst_time;
+                    idx = i;
+                }
+
+                // compare arrival time when 'least burst time' will be same for two process
+                if(p[i].burst_time == mn) {
+                    if(p[i].arrival_time < p[idx].arrival_time) {
+                        mn = p[i].burst_time;
+                        idx = i;
+                    }
+                }
+            }
+        }
+
+        if(idx != -1) 
+        {
+            p[idx].start_time = current_time;
+            p[idx].completion_time = p[idx].start_time + p[idx].burst_time;
+            p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+            p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+            total_turnaround_time += p[idx].turnaround_time;
+            total_waiting_time += p[idx].waiting_time;
+            total_idle_time += p[idx].start_time - prev;
+
+            is_completed[idx] = 1;
+            completed++;
+            Order_Of_Execution.push_back(p[idx].pid);
+            current_time = p[idx].completion_time;
+            prev = current_time;
+        }
+        else 
+        {
+            current_time++;
+        }
+
+    }
+
+    int min_arrival_time = 10000000;
+    int max_completion_time = -1;
+    for(int i = 0; i < n; i++) 
+    {
+        min_arrival_time = min(min_arrival_time,p[i].arrival_time);
+        max_completion_time = max(max_completion_time,p[i].completion_time);
+    }
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    cpu_utilisation = ((max_completion_time - total_idle_time) / (float) max_completion_time )*100;
+
+    cout<<endl<<endl;
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<"\t"<<"\n"<<endl;
+    }
+
+    // Gantt chart...
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<n; i++){
+        cout <<"|   "<<Order_Of_Execution[i] << "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+    int k;
+    for ( k = 0; k < Order_Of_Execution.size(); k++)
+    {
+        // start time according to order of execution.
+        for (int j = 0; j < Order_Of_Execution.size() ; j++)
+        {
+            if(Order_Of_Execution[k] == p[j].pid)
+            {
+               cout << p[j].start_time<< "\t";
+            }
+        }    
+    } 
+
+    cout<<max_completion_time<<endl<<endl;
+    cout<<"Average Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"Average Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"CPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<""<<endl;
+   return 0;
+}
+
+
+
+
+
+
+// C++ implementaion of Round Robin CPU Scheduling Algorithm.
+#include <iostream>
+#include<vector>
+#include <algorithm> 
+#include <iomanip>
+#include <queue> 
+#include <string.h> 
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int start_time;
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+    int response_time;
+};
+
+bool compare1(process p1, process p2) 
+{ 
+    return p1.arrival_time < p2.arrival_time;
+}
+
+bool compare2(process p1, process p2) 
+{  
+    return p1.pid < p2.pid;
+}
+
+int main() {
+
+    int n;
+    int tq;
+    struct process p[100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float avg_response_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_response_time = 0;
+    int total_idle_time = 0;
+    float throughput;
+    int burst_remaining[100];
+    int idx;
+
+    cout << setprecision(2) << fixed;
+
+    vector<int>Order_Of_Execution; 
+    vector<int>Time;
+
+    cout<<"\nEnter the number of processes: ";
+    cin>>n;
+    cout<<"\nEnter time quantum: ";
+    cin>>tq;
+
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+
+        // initially update burst_remaining time with total burst time.
+        burst_remaining[i] = p[i].burst_time;
+        p[i].pid = i+1;
+        cout<<endl;
+    }
+
+
+    sort(p,p+n,compare1);
+
+    queue<int> q;
+    int current_time = 0;
+    q.push(0);
+    int completed = 0;
+    int mark[100];
+    memset(mark,0,sizeof(mark));
+    mark[0] = 1;
+
+    while(completed != n) 
+    {
+        idx = q.front();
+        q.pop();
+
+        // To check same process is coming again Or 
+        // Another new process with 'burst_remaining time exactly equal to burst_time' is coming after context Switching. 
+        if(burst_remaining[idx] == p[idx].burst_time) 
+        {
+            p[idx].start_time = max(current_time,p[idx].arrival_time);
+            total_idle_time += p[idx].start_time - current_time;
+            current_time = p[idx].start_time;
+        }
+
+
+        if(burst_remaining[idx]-tq > 0) 
+        {
+            burst_remaining[idx] -= tq;
+
+            // order of execution and Time for Gantt chart ...
+            Order_Of_Execution.push_back(p[idx].pid);
+            Time.push_back(current_time);
+
+            current_time += tq;
+        }
+        else 
+        {
+            // burst_remaining time is less than equal to time quantum.
+            // ---->
+            // order of execution and Time for Gantt chart ...
+            Order_Of_Execution.push_back(p[idx].pid);
+            Time.push_back(current_time);
+
+            current_time += burst_remaining[idx];
+            burst_remaining[idx] = 0;
+            completed++;
+
+            if (completed == n)
+            {   
+                // Final Completion time.
+                Time.push_back(current_time);
+            }
+
+
+            p[idx].completion_time = current_time;
+            p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+            p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+            p[idx].response_time = p[idx].start_time - p[idx].arrival_time;
+
+            total_turnaround_time += p[idx].turnaround_time;
+            total_waiting_time += p[idx].waiting_time;
+            total_response_time += p[idx].response_time;
+        }
+
+        // starting from 'second process'(i = 1) because first(i = 0) arrived process present 
+        // in ready queue which is already executed.
+        for(int i = 1; i < n; i++) 
+        {
+            // all processes are already sorted according to their arrival time.
+            // so..  only we have to push those processes into Ready Queue which have something burst_remaining time.
+            if(burst_remaining[i] > 0 && p[i].arrival_time <= current_time && mark[i] == 0) 
+            {
+                q.push(i);
+                mark[i] = 1;
+            }
+        }
+
+        // curent process which is not completely executed but only for time quantum coming at the 
+        // extreme end of the queue.
+        if(burst_remaining[idx] > 0) 
+        {
+            q.push(idx);
+        }
+
+        if(q.empty()) 
+        {
+            for(int i = 1; i < n; i++) 
+            {
+                if(burst_remaining[i] > 0) 
+                {
+                    q.push(i);
+                    mark[i] = 1;
+                    break;
+                }
+            }
+        }
+
+
+    }
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    avg_response_time = (float) total_response_time / n;
+    cpu_utilisation = ((p[n-1].completion_time - total_idle_time) / (float) p[n-1].completion_time)*100;
+    throughput = float(n) / (p[n-1].completion_time - p[0].arrival_time);
+
+    // because we have to print those processes in consecutive order of their process ID.
+    sort(p,p+n,compare2);
+
+    cout<<endl<<endl;
+
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"RT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<p[i].response_time<<"\t"<<"\n"<<endl;
+    }
+
+    // Gantt chart...
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<Order_Of_Execution.size(); i++)
+    {
+        cout <<"|   "<<Order_Of_Execution[i]<< "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+
+    for (int i = 0; i < Time.size() ; i++)
+    {
+        cout <<Time[i]<< "\t";
+    }
+
+    cout<<"\n\nAverage Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"Average Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"Average Response Time = "<<avg_response_time<<endl<<endl;
+    cout<<"CPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<"Throughput = "<<throughput<<" process/unit time"<<endl<<endl;
+    cout<<""<<endl;
+
+    return 0;
+}
+
+
+
+
+
+// C++ implementaion of 'Preemptive Priority' CPU Scheduling Algorithm.
+#include <iostream>
+#include <vector>
+#include <algorithm> 
+#include <iomanip>
+#include <cstring> 
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int priority; // priority of the process.
+    int start_time; // Time at which process gets CPU first time. 
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+};
+
+int main() {
+
+    int n;
+    struct process p[100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_idle_time = 0;
+    int burst_remaining[100];
+    int is_completed[100];
+    memset(is_completed,0,sizeof(is_completed));
+
+    //order of processes in which they are executing.
+    vector<int>Order_Of_Execution; 
+    vector<int>Time;  
+
+    cout << setprecision(2) << fixed;
+
+    cout<<"\nEnter the number of processes: ";
+    cin>>n;
+    cout<<endl;
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+        cout<<"Enter Priority of the process "<<i+1<<": ";
+        cin>>p[i].priority;
+        p[i].pid = i+1;
+        // initially update burst_remaining time with total burst time.
+        // Due to Preemption we have taken this...
+        burst_remaining[i] = p[i].burst_time;
+        cout<<endl;
+    }
+
+    int current_time = 0 , prev_time = 0;
+    int completed = 0;
+    int prev = 0 , Prev_idx = -1;
+
+    while(completed != n) 
+    {
+        int idx = -1;
+        int mx = -1;
+        // To find process with Highest priority will get execute first
+        for(int i = 0; i < n; i++) 
+        {
+            if(p[i].arrival_time <= current_time && is_completed[i] == 0) 
+            {
+                // Which process has maximum priority.
+                if(p[i].priority > mx) 
+                {
+                    mx = p[i].priority;
+                    idx = i;
+                }
+
+                // compare arrival time when 'Maximum Priority' will be same for two process.   
+                if(p[i].priority == mx) 
+                {
+                    if(p[i].arrival_time < p[idx].arrival_time) 
+                    {
+                        mx = p[i].priority;
+                        idx = i;
+                    }
+                }
+            }
+        }
+
+        if(idx != -1) 
+        {
+            // To check same process is coming again Or 
+            // Another new process with burst_remaining time exactly equal to burst_time is coming after context Switching.
+            if(burst_remaining[idx] == p[idx].burst_time) 
+            {
+                p[idx].start_time = current_time;
+                prev_time = current_time;
+                total_idle_time += p[idx].start_time - prev;
+            }
+
+            // always proceed with 1 unit of time to check preemption.
+            burst_remaining[idx] -= 1;
+
+            if(Prev_idx != idx)
+            {
+               if(find(Order_Of_Execution.begin(),Order_Of_Execution.end(),p[idx].pid) != Order_Of_Execution.end())
+               { 
+                   // Agar same process ek ya ek se jyada baar pahle aa chuka hai toh yeh hoga 
+                   // but only for first Unit of time. 
+                   prev_time = current_time;
+               } 
+               Order_Of_Execution.push_back(p[idx].pid);
+               Time.push_back(prev_time);
+            }
+            Prev_idx = idx;
+            prev_time = current_time;
+            current_time++;
+            prev = current_time;
+
+
+            if(burst_remaining[idx] == 0) 
+            {
+                p[idx].completion_time = current_time;
+                p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+                p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+                total_turnaround_time += p[idx].turnaround_time;
+                total_waiting_time += p[idx].waiting_time;
+
+                is_completed[idx] = 1;
+                completed++;
+            }
+
+        }
+        else 
+        {
+             current_time++;
+        }  
+    }
+
+    int min_arrival_time = 10000000;
+    int max_completion_time = -1;
+
+    for(int i = 0; i < n; i++) 
+    {
+        min_arrival_time = min(min_arrival_time,p[i].arrival_time);
+        max_completion_time = max(max_completion_time,p[i].completion_time);
+    }
+
+    // Final completion time
+    Time.push_back(max_completion_time);
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    cpu_utilisation = ((max_completion_time - total_idle_time) / (float) max_completion_time )*100;
+
+    cout<<endl<<endl;
+
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"PRI\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].priority<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<"\t"<<"\n"<<endl;
+    }
+
+    // Gantt chart...
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<Order_Of_Execution.size(); i++)
+    {
+        cout <<"|   "<<Order_Of_Execution[i]<< "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+
+    for (int i = 0; i < Time.size() ; i++)
+    {
+        cout <<Time[i]<< "\t";
+    }
+
+    cout<<"\n\nAverage Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"Average Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"CPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<""<<endl;
+
+  return 0;
+}
+
+
+
+
+
+C++ implementaion of 'non Preemptive Priority' CPU Scheduling Algorithm.
+
+#include <iostream>
+#include <vector>
+#include <algorithm> 
+#include <iomanip>
+#include <cstring> 
+using namespace std;
+
+struct process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int priority; // priority of the process.
+    int start_time; // Time at which process gets CPU first time. 
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+};
+
+bool compareArrival(const process &a, const process &b) {
+    return a.arrival_time < b.arrival_time;
+}
+
+bool comparePriority(const process &a, const process &b) {
+    return a.priority > b.priority;
+}
+
+int main() {
+
+    int n;
+    struct process p[100];
+    float avg_turnaround_time;
+    float avg_waiting_time;
+    float cpu_utilisation;
+    int total_turnaround_time = 0;
+    int total_waiting_time = 0;
+    int total_idle_time = 0;
+    int is_completed[100];
+    memset(is_completed,0,sizeof(is_completed));
+
+    //order of processes in which they are executing.
+    vector<int>Order_Of_Execution; 
+    vector<int>Time;  
+
+    cout << setprecision(2) << fixed;
+
+    cout<<"\nEnter the number of processes: ";
+    cin>>n;
+    cout<<endl;
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<"Enter ARRIVAL time of process "<<i+1<<": ";
+        cin>>p[i].arrival_time;
+        cout<<"Enter BURST time of process "<<i+1<<": ";
+        cin>>p[i].burst_time;
+        cout<<"Enter Priority of the process "<<i+1<<": ";
+        cin>>p[i].priority;
+        p[i].pid = i+1;
+        // initially update burst_remaining time with total burst time.
+        // Due to Preemption we have taken this...
+        cout<<endl;
+    }
+
+    sort(p, p + n, compareArrival);
+
+    int current_time = 0 , prev_time = 0;
+    int completed = 0;
+    
+
+    while(completed != n) 
+    {
+        int idx = -1;
+        int mx = -1;
+        // To find process with Highest priority will get execute first
+        for(int i = 0; i < n; i++) 
+        {
+            if(p[i].arrival_time <= current_time && is_completed[i] == 0) 
+            {
+                // Which process has maximum priority.
+                if(p[i].priority > mx) 
+                {
+                    mx = p[i].priority;
+                    idx = i;
+                }
+            }
+        }
+
+        if(idx != -1) 
+        {
+            p[idx].start_time = current_time;
+            p[idx].completion_time = current_time + p[idx].burst_time;
+            p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
+            p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
+
+            total_turnaround_time += p[idx].turnaround_time;
+            total_waiting_time += p[idx].waiting_time;
+
+            is_completed[idx] = 1;
+            completed++;
+            current_time = p[idx].completion_time;
+
+            Order_Of_Execution.push_back(p[idx].pid);
+            Time.push_back(prev_time);
+            prev_time = current_time;
+        }
+        else 
+        {
+             current_time++;
+        }  
+    }
+
+    int min_arrival_time = 10000000;
+    int max_completion_time = -1;
+
+    for(int i = 0; i < n; i++) 
+    {
+        min_arrival_time = min(min_arrival_time,p[i].arrival_time);
+        max_completion_time = max(max_completion_time,p[i].completion_time);
+    }
+
+    // Final completion time
+    Time.push_back(max_completion_time);
+
+    avg_turnaround_time = (float) total_turnaround_time / n;
+    avg_waiting_time = (float) total_waiting_time / n;
+    cpu_utilisation = ((max_completion_time - total_idle_time) / (float) max_completion_time )*100;
+
+    cout<<endl<<endl;
+
+    cout<<""<<endl;
+    cout<<"#P\t"<<"AT\t"<<"BT\t"<<"PRI\t"<<"ST\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) 
+    {
+        cout<<p[i].pid<<"\t"<<p[i].arrival_time<<"\t"<<p[i].burst_time<<"\t"<<p[i].priority<<"\t"<<p[i].start_time<<"\t"<<p[i].completion_time<<"\t"<<p[i].turnaround_time<<"\t"<<p[i].waiting_time<<"\t"<<"\t"<<"\n"<<endl;
+    }
+
+    // Gantt chart...
+    cout<<"\n";
+    cout<<"Gantt Chart:\n"<<"-----------"<<"\n\n\n";
+    for (int i=0; i<Order_Of_Execution.size(); i++)
+    {
+        cout <<"|   "<<Order_Of_Execution[i]<< "   "; 
+    }
+    cout<<"|";
+
+    cout<<"\n";
+
+    for (int i = 0; i < Time.size() ; i++)
+    {
+        cout <<Time[i]<< "\t";
+    }
+
+    cout<<"\n\nAverage Turnaround Time = "<<avg_turnaround_time<<endl<<endl;
+    cout<<"Average Waiting Time = "<<avg_waiting_time<<endl<<endl;
+    cout<<"CPU Utilization = "<<cpu_utilisation<<"%"<<endl<<endl;
+    cout<<""<<endl;
+
+  return 0;
+}

@@ -1,0 +1,37 @@
+ #include <iostream>
+ #include <string>
+ #include <unistd.h>
+ #include <sys/types.h>
+ #include <sys/wait.h>
+ #include <semaphore.h>
+ using namespace std;
+ int main() {
+ char message[100];
+ int pid = 1;
+ do {
+ if (pid == 1) {
+ cout << "!!!Parent-Enter a message to send to the child (type 'exit' to exit): ";
+ cin.getline(message, sizeof(message));
+ // If parent sends "exit", break the loop
+ if (string(message) == "exit") break;
+ pid = 2;
+ }
+ else if (pid == 0) { // Child process
+ cout << "!!!Child- Enter a message to send to the parent (type 'exit' to exit): ";
+ cin.getline(message, sizeof(message));
+ // If child sends "exit", break the loop
+ if (string(message) == "exit") break;
+ pid = 3;
+ }
+ else if (pid == 3) { // Child process
+ cout << "!!!Parent- Received response from child: " <<message<< endl;
+ pid = 1;
+ }
+ else if (pid == 2) { // Parent process
+ cout << "!!!Child- Received response from parent: " <<message<< endl;
+ pid = 0;
+ }
+ } while (pid < 5);
+cout<<"!!!Exited!!!"<<endl;
+ return 0;
+ }

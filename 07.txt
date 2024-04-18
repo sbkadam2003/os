@@ -1,0 +1,537 @@
+without page hits-----
+
+FCFS input : 7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int FCFS(int pages[], int p, int  slots[], int s) {
+  int pageFaults = 0;
+
+  int nextFreeSlot = 0;
+
+  for (int i = 0; i < p; i++) {
+    bool pageFaultOccurred = true;
+
+    for (int j = 0; j < s; j++) {
+      if (slots[j] == pages[i]) {
+        pageFaultOccurred = false;
+        break;
+      }
+    }
+    // 7 0 1 2 0 3 0 4 2 3
+
+    if (pageFaultOccurred) {
+      slots[nextFreeSlot] = pages[i];
+      pageFaults++;
+      nextFreeSlot = (nextFreeSlot + 1) % s;
+    }
+  }
+
+  return pageFaults;
+}
+
+int LRU(int pages[], int p, int  slots[], int s){
+  int pageFaults = 0;
+
+   return pageFaults;
+}
+
+
+int main() {
+  int p;
+  cout<<"Enter no of elements in Reference String : ";
+  cin>>p;
+
+  int pages[p] ;
+
+  cout<<"Entert Reference String elementes :"<<endl;
+
+  for(int i=0;i<p;i++){
+    cin>>pages[i];
+  }
+
+  int s;
+  cout<<"Enter No of slots : ";
+  cin>>s;
+
+  int slots[s];
+
+  cout<<"By using FCFS Algorithm :"<<endl;
+
+  cout<<"Total page Faults : "<<FCFS(pages,p,slots,s)<<endl;
+
+  return 0;
+
+
+LRU
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+
+int lruPageFaults(const vector<int>& referenceString, int numSlots) {
+    int pageFaults = 0;
+    unordered_map<int, int> pageTable;
+    vector<int> lruQueue;
+
+    for (int page : referenceString) {
+        if (pageTable.find(page) == pageTable.end()) {
+            pageFaults++;
+            if (lruQueue.size() == numSlots) {
+                int leastRecentlyUsed = lruQueue.front();
+                auto it = find(lruQueue.begin(), lruQueue.end(), leastRecentlyUsed);
+                lruQueue.erase(it);
+                pageTable.erase(leastRecentlyUsed);
+            }
+        } else {
+            auto it = find(lruQueue.begin(), lruQueue.end(), page);
+            if (it != lruQueue.end()) {
+                lruQueue.erase(it);
+            }
+        }
+        lruQueue.push_back(page);
+        pageTable[page] = 1;
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int numElements, numSlots;
+    cout << "Enter no of elements in Reference String: ";
+    cin >> numElements;
+
+    vector<int> referenceString(numElements);
+    cout << "Enter Reference String elements: ";
+    for (int i = 0; i < numElements; ++i) {
+        cin >> referenceString[i];
+    }
+
+    cout << "Enter No of slots: ";
+    cin >> numSlots;
+
+    int pageFaults = lruPageFaults(referenceString, numSlots);
+    cout << "By using LRU Algorithm:" << endl;
+    cout << "Total page Faults: " << pageFaults << endl;
+
+    return 0;
+}
+
+
+Optimal 
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+
+int optimalPageFaults(const vector<int>& referenceString, int numSlots) {
+    int pageFaults = 0;
+    unordered_map<int, int> pageTable;
+    vector<int> futureAccesses;
+
+    for (int i = 0; i < referenceString.size(); ++i) {
+        int page = referenceString[i];
+        if (pageTable.find(page) == pageTable.end()) {
+            pageFaults++;
+            if (pageTable.size() < numSlots) {
+                pageTable[page] = i;
+            } else {
+                int replacePage = -1;
+                int farthest = i;
+                for (auto it = pageTable.begin(); it != pageTable.end(); ++it) {
+                    auto pos = find(referenceString.begin() + i, referenceString.end(), it->first);
+                    if (pos == referenceString.end()) {
+                        replacePage = it->first;
+                        break;
+                    } else {
+                        if (distance(referenceString.begin(), pos) > farthest) {
+                            farthest = distance(referenceString.begin(), pos);
+                            replacePage = it->first;
+                        }
+                    }
+                }
+                pageTable.erase(replacePage);
+                pageTable[page] = i;
+            }
+        }
+    }
+    return pageFaults;
+}
+
+int main() {
+    int numElements, numSlots;
+    cout << "Enter no of elements in Reference String: ";
+    cin >> numElements;
+
+    vector<int> referenceString(numElements);
+    cout << "Enter Reference String elements: ";
+    for (int i = 0; i < numElements; ++i) {
+        cin >> referenceString[i];
+    }
+
+    cout << "Enter No of slots: ";
+    cin >> numSlots;
+
+    int pageFaults = optimalPageFaults(referenceString, numSlots);
+    cout << "By using optimal page replacement Algorithm:" << endl;
+    cout << "Total page Faults: " << pageFaults << endl;
+
+    return 0;
+}
+
+
+with page hit------
+//FCFS
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int FCFS(int pages[], int p, int slots[], int s, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    int nextFreeSlot = 0;
+
+    for (int i = 0; i < p; i++) {
+        bool pageFound = false;
+
+        for (int j = 0; j < s; j++) {
+            if (slots[j] == pages[i]) {
+                pageFound = true;
+                pageHits++;
+                break;
+            }
+        }
+
+        if (!pageFound) {
+            slots[nextFreeSlot] = pages[i];
+            pageFaults++;
+            nextFreeSlot = (nextFreeSlot + 1) % s;
+        }
+    }
+
+    return pageFaults;
+}
+
+int LRU(int pages[], int p, int slots[], int s) {
+    int pageFaults = 0;
+
+    // Implementation of LRU algorithm
+
+    return pageFaults;
+}
+
+int main() {
+    int p;
+    cout << "Enter the number of elements in Reference String: ";
+    cin >> p;
+
+    int pages[p];
+
+    cout << "Enter Reference String elements:" << endl;
+
+    for (int i = 0; i < p; i++) {
+        cin >> pages[i];
+    }
+
+    int s;
+    cout << "Enter the number of slots: ";
+    cin >> s;
+
+    int slots[s];
+
+    int pageHits;
+    cout << "By using FCFS Algorithm:" << endl;
+    int pageFaults = FCFS(pages, p, slots, s, pageHits);
+    cout << "Total page Faults: " << pageFaults << endl;
+    cout << "Total page Hits: " << pageHits << endl;
+
+    return 0;
+}
+
+
+//LRU
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+
+int lruPageFaults(const vector<int>& referenceString, int numSlots, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    unordered_map<int, int> pageTable;
+    vector<int> lruQueue;
+
+    for (int page : referenceString) {
+        if (pageTable.find(page) == pageTable.end()) {
+            pageFaults++;
+            if (lruQueue.size() == numSlots) {
+                int leastRecentlyUsed = lruQueue.front();
+                auto it = find(lruQueue.begin(), lruQueue.end(), leastRecentlyUsed);
+                lruQueue.erase(it);
+                pageTable.erase(leastRecentlyUsed);
+            }
+        } else {
+            pageHits++;
+            auto it = find(lruQueue.begin(), lruQueue.end(), page);
+            if (it != lruQueue.end()) {
+                lruQueue.erase(it);
+            }
+        }
+        lruQueue.push_back(page);
+        pageTable[page] = 1;
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int numElements, numSlots;
+    cout << "Enter no of elements in Reference String: ";
+    cin >> numElements;
+
+    vector<int> referenceString(numElements);
+    cout << "Enter Reference String elements: ";
+    for (int i = 0; i < numElements; ++i) {
+        cin >> referenceString[i];
+    }
+
+    cout << "Enter No of slots: ";
+    cin >> numSlots;
+
+    int pageHits;
+    int pageFaults = lruPageFaults(referenceString, numSlots, pageHits);
+    cout << "By using LRU Algorithm:" << endl;
+    cout << "Total page Faults: " << pageFaults << endl;
+    cout << "Total page Hits: " << pageHits << endl;
+
+    return 0;
+}
+
+
+//Optimal
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+
+int optimalPageFaults(const vector<int>& referenceString, int numSlots, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    unordered_map<int, int> pageTable;
+
+    for (int i = 0; i < referenceString.size(); ++i) {
+        int page = referenceString[i];
+        if (pageTable.find(page) != pageTable.end()) {
+            pageHits++;
+        } else {
+            pageFaults++;
+            if (pageTable.size() < numSlots) {
+                pageTable[page] = i;
+            } else {
+                int replacePage = -1;
+                int farthest = i;
+                for (auto it = pageTable.begin(); it != pageTable.end(); ++it) {
+                    auto pos = find(referenceString.begin() + i, referenceString.end(), it->first);
+                    if (pos == referenceString.end()) {
+                        replacePage = it->first;
+                        break;
+                    } else {
+                        if (distance(referenceString.begin(), pos) > farthest) {
+                            farthest = distance(referenceString.begin(), pos);
+                            replacePage = it->first;
+                        }
+                    }
+                }
+                pageTable.erase(replacePage);
+                pageTable[page] = i;
+            }
+        }
+    }
+    return pageFaults;
+}
+
+int main() {
+    int numElements, numSlots;
+    cout << "Enter no of elements in Reference String: ";
+    cin >> numElements;
+
+    vector<int> referenceString(numElements);
+    cout << "Enter Reference String elements: ";
+    for (int i = 0; i < numElements; ++i) {
+        cin >> referenceString[i];
+    }
+
+    cout << "Enter No of slots: ";
+    cin >> numSlots;
+
+    int pageHits;
+    int pageFaults = optimalPageFaults(referenceString, numSlots, pageHits);
+    cout << "By using optimal page replacement Algorithm:" << endl;
+    cout << "Total page Faults: " << pageFaults << endl;
+    cout << "Total page Hits: " << pageHits << endl;
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+Merge code  with page hit:
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+
+using namespace std;
+
+int FCFS(int pages[], int p, int slots[], int s, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    int nextFreeSlot = 0;
+
+    for (int i = 0; i < p; i++) {
+        bool pageFound = false;
+
+        for (int j = 0; j < s; j++) {
+            if (slots[j] == pages[i]) {
+                pageFound = true;
+                pageHits++;
+                break;
+            }
+        }
+
+        if (!pageFound) {
+            slots[nextFreeSlot] = pages[i];
+            pageFaults++;
+            nextFreeSlot = (nextFreeSlot + 1) % s;
+        }
+    }
+
+    return pageFaults;
+}
+
+int lruPageFaultsFunc(const vector<int>& referenceString, int numSlots, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    unordered_map<int, int> pageTable;
+    vector<int> lruQueue;
+
+    for (int page : referenceString) {
+        if (pageTable.find(page) != pageTable.end()) {
+            pageHits++;
+            auto it = find(lruQueue.begin(), lruQueue.end(), page);
+            if (it != lruQueue.end()) {
+                lruQueue.erase(it);
+            }
+        } else {
+            pageFaults++;
+            if (lruQueue.size() == numSlots) {
+                int leastRecentlyUsed = lruQueue.front();
+                auto it = find(lruQueue.begin(), lruQueue.end(), leastRecentlyUsed);
+                lruQueue.erase(it);
+                pageTable.erase(leastRecentlyUsed);
+            }
+        }
+        lruQueue.push_back(page);
+        pageTable[page] = 1;
+    }
+
+    return pageFaults;
+}
+
+int optimalPageFaultsFunc(const vector<int>& referenceString, int numSlots, int& pageHits) {
+    int pageFaults = 0;
+    pageHits = 0;
+    unordered_map<int, int> pageTable;
+
+    for (int i = 0; i < referenceString.size(); ++i) {
+        int page = referenceString[i];
+        if (pageTable.find(page) != pageTable.end()) {
+            pageHits++;
+        } else {
+            pageFaults++;
+            if (pageTable.size() < numSlots) {
+                pageTable[page] = i;
+            } else {
+                int replacePage = -1;
+                int farthest = i;
+                for (auto it = pageTable.begin(); it != pageTable.end(); ++it) {
+                    auto pos = find(referenceString.begin() + i, referenceString.end(), it->first);
+                    if (pos == referenceString.end()) {
+                        replacePage = it->first;
+                        break;
+                    } else {
+                        if (distance(referenceString.begin(), pos) > farthest) {
+                            farthest = distance(referenceString.begin(), pos);
+                            replacePage = it->first;
+                        }
+                    }
+                }
+                pageTable.erase(replacePage);
+                pageTable[page] = i;
+            }
+        }
+    }
+    return pageFaults;
+}
+
+int main() {
+    int numElements, numSlots;
+    cout << "Enter no of elements in Reference String: ";
+    cin >> numElements;
+
+    int pages[numElements];
+    cout << "Enter Reference String elements: ";
+    for (int i = 0; i < numElements; ++i) {
+        cin >> pages[i];
+    }
+
+    cout << "Enter No of slots: ";
+    cin >> numSlots;
+
+    int slots[numSlots];
+
+    int fcfsPageHits;
+    int fcfsPageFaults = FCFS(pages, numElements, slots, numSlots, fcfsPageHits);
+
+    vector<int> referenceString(pages, pages + numElements);
+
+    int lruPageHits;
+    int lruPageFaults = lruPageFaultsFunc(referenceString, numSlots, lruPageHits);
+
+    int optimalPageHits;
+    int optimalPageFaults = optimalPageFaultsFunc(referenceString, numSlots, optimalPageHits);
+    cout<<"\n";
+    cout << "By using FCFS Algorithm:" << endl;
+    cout << "Total page Faults: " << fcfsPageFaults << endl;
+    cout << "Total page Hits: " << fcfsPageHits <<"\n"<< endl;
+
+    cout << "By using LRU Algorithm:" << endl;
+    cout << "Total page Faults: " << lruPageFaults << endl;
+    cout << "Total page Hits: " << lruPageHits <<"\n"<< endl;
+
+    cout << "By using optimal page replacement Algorithm:" << endl;
+    cout << "Total page Faults: " << optimalPageFaults << endl;
+    cout << "Total page Hits: " << optimalPageHits <<"\n"<< endl;
+
+    return 0;
+}
+

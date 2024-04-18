@@ -1,0 +1,457 @@
+FIFO
+
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int fifoDiskScheduling(const vector<int>& requests, int head) {
+    int totalHeadMovement = 0;
+    queue<int> q;
+
+    for (int req : requests) {
+        q.push(req);
+    }
+
+    cout << "Request order: ";
+    for (int req : requests) {
+        cout << req << " ";
+    }
+    cout << endl;
+
+    while (!q.empty()) {
+        int currentReq = q.front();
+        q.pop();
+        totalHeadMovement += abs(head - currentReq);
+        head = currentReq;
+    }
+
+    return totalHeadMovement;
+}
+
+int main() {
+    int numRequests, head;
+    cout << "Enter number of requests: ";
+    cin >> numRequests;
+
+    vector<int> requests(numRequests);
+    cout << "Enter requests: ";
+    for (int i = 0; i < numRequests; ++i) {
+        cin >> requests[i];
+    }
+
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    int totalHeadMovement = fifoDiskScheduling(requests, head);
+    cout << "Total head movement using FIFO: " << totalHeadMovement << endl;
+
+    return 0;
+}
+
+
+
+
+SSTF
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+int sstfDiskScheduling(vector<int>& requests, int head) {
+    int totalHeadMovement = 0;
+
+    cout << "Request order: ";
+    for (int req : requests) {
+        cout << req << " ";
+    }
+    cout << endl;
+
+    while (!requests.empty()) {
+        int minDistance = INT_MAX;
+        int minIndex = -1;
+
+        for (int i = 0; i < requests.size(); ++i) {
+            int distance = abs(head - requests[i]);
+            if (distance < minDistance) {
+                minDistance = distance;
+                minIndex = i;
+            }
+        }
+
+        totalHeadMovement += minDistance;
+        head = requests[minIndex];
+        requests.erase(requests.begin() + minIndex);
+    }
+
+    return totalHeadMovement;
+}
+
+int main() {
+    int numRequests, head;
+    cout << "Enter number of requests: ";
+    cin >> numRequests;
+
+    vector<int> requests(numRequests);
+    cout << "Enter requests: ";
+    for (int i = 0; i < numRequests; ++i) {
+        cin >> requests[i];
+    }
+
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    int totalHeadMovement = sstfDiskScheduling(requests, head);
+    cout << "Total head movement using SSTF: " << totalHeadMovement << endl;
+
+    return 0;
+}
+
+
+
+
+SCAN
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int SCAN(int arr[], int size, int head, string direction) {
+    int seek_count = 0;
+    int distance, cur_track;
+    vector<int> left, right;
+    vector<int> seek_sequence;
+
+    if (direction == "left")
+        left.push_back(0);
+    else if (direction == "right")
+        right.push_back(199);
+
+    for (int i = 0; i < size; i++) {
+        if (arr[i] < head)
+            left.push_back(arr[i]);
+        if (arr[i] > head)
+            right.push_back(arr[i]);
+    }
+
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    int run = 2;
+    while (run--) {
+        if (direction == "left") {
+            for (int i = left.size() - 1; i >= 0; i--) {
+                cur_track = left[i];
+                seek_sequence.push_back(cur_track);
+                distance = abs(cur_track - head);
+                seek_count += distance;
+                head = cur_track;
+            }
+            direction = "right";
+        } else if (direction == "right") {
+            for (int i = 0; i < right.size(); i++) {
+                cur_track = right[i];
+                seek_sequence.push_back(cur_track);
+                distance = abs(cur_track - head);
+                seek_count += distance;
+                head = cur_track;
+            }
+            direction = "left";
+        }
+    }
+
+    return seek_count;
+}
+
+int main() {
+    int size;
+    cout << "User" << endl;
+    cout << "Enter number of requests: ";
+    cin >> size;
+
+    int arr[size];
+    int head;
+    string direction;
+
+    cout << "Enter requests: ";
+    for (int i = 0; i < size; i++) {
+        cin >> arr[i];
+    }
+
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    cout << "Request order: ";
+    for (int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    cout << "Enter the direction of movement (left/right): ";
+    cin >> direction;
+
+    int totalHeadMovement = SCAN(arr, size, head, direction);
+
+    if (direction == "left")
+        cout << "Total head movement using SCAN (Left): " << totalHeadMovement << endl;
+    else if (direction == "right")
+        cout << "Total head movement using SCAN (Right): " << totalHeadMovement << endl;
+
+    return 0;
+}
+
+
+
+C-SCAN
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+void CSCAN(int arr[], int size, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+    vector<int> left, right;
+    vector<int> seek_sequence;
+
+    left.push_back(0);
+    right.push_back(199);
+
+    for (int i = 0; i < size; i++) {
+        if (arr[i] < head)
+            left.push_back(arr[i]);
+        if (arr[i] > head)
+            right.push_back(arr[i]);
+    }
+
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    for (int i = 0; i < right.size(); i++) {
+        cur_track = right[i];
+        seek_sequence.push_back(cur_track);
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    head = 0;
+    seek_count += 199;
+
+    for (int i = 0; i < left.size(); i++) {
+        cur_track = left[i];
+        seek_sequence.push_back(cur_track);
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    cout << "Total head movement using C-SCAN: " << seek_count << endl;
+}
+
+int main() {
+    cout << "Enter number of requests: ";
+    int size;
+    cin >> size;
+
+    int arr[size];
+    int head;
+
+    cout << "Enter requests: ";
+    for (int i = 0; i < size; i++) {
+        cin >> arr[i];
+    }
+
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    cout << "Request order: ";
+    for (int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    CSCAN(arr, size, head);
+
+    return 0;
+}
+
+
+
+
+Merge code :
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <climits>
+
+using namespace std;
+
+void FCFS(const vector<int>& requests, int head) {
+    int totalHeadMovement = 0;
+    for (int req : requests) {
+        totalHeadMovement += abs(head - req);
+        head = req;
+    }
+    cout << "Total head movement using FIFO: " << totalHeadMovement << endl;
+}
+
+void SSTF(vector<int>& requests, int head) {
+    int totalHeadMovement = 0;
+    cout << "Request order: ";
+    while (!requests.empty()) {
+        int minDistance = INT_MAX;
+        int minIndex = -1;
+        for (int i = 0; i < requests.size(); ++i) {
+            int distance = abs(head - requests[i]);
+            if (distance < minDistance) {
+                minDistance = distance;
+                minIndex = i;
+            }
+        }
+        totalHeadMovement += minDistance;
+        head = requests[minIndex];
+        cout << head << " ";
+        requests.erase(requests.begin() + minIndex);
+    }
+    cout << endl;
+    cout << "Total head movement using SSTF: " << totalHeadMovement << endl;
+}
+
+int SCAN(vector<int>& requests, int head, string direction) {
+    int seek_count = 0;
+    int cur_track;
+    vector<int> left, right;
+
+    if (direction == "left")
+        left.push_back(0);
+    else if (direction == "right")
+        right.push_back(199);
+
+    for (int req : requests) {
+        if (req < head)
+            left.push_back(req);
+        if (req > head)
+            right.push_back(req);
+    }
+
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    int run = 2;
+    while (run--) {
+        if (direction == "left") {
+            for (int i = left.size() - 1; i >= 0; i--) {
+                cur_track = left[i];
+                seek_count += abs(cur_track - head);
+                head = cur_track;
+            }
+            direction = "right";
+        } else if (direction == "right") {
+            for (int i = 0; i < right.size(); i++) {
+                cur_track = right[i];
+                seek_count += abs(cur_track - head);
+                head = cur_track;
+            }
+            direction = "left";
+        }
+    }
+    return seek_count;
+}
+
+void CSCAN(vector<int>& requests, int head) {
+    int seek_count = 0;
+    int cur_track;
+    vector<int> left, right;
+
+    left.push_back(0);
+    right.push_back(199);
+
+    for (int req : requests) {
+        if (req < head)
+            left.push_back(req);
+        if (req > head)
+            right.push_back(req);
+    }
+
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    for (int i = 0; i < right.size(); i++) {
+        cur_track = right[i];
+        seek_count += abs(cur_track - head);
+        head = cur_track;
+    }
+
+    head = 0;
+    seek_count += 199;
+
+    for (int i = 0; i < left.size(); i++) {
+        cur_track = left[i];
+        seek_count += abs(cur_track - head);
+        head = cur_track;
+    }
+
+    cout << "Total head movement using C-SCAN: " << seek_count << endl;
+}
+
+int main() {
+    cout << "Enter number of requests: ";
+    int size;
+    cin >> size;
+
+    vector<int> requests(size);
+    cout << "Enter requests: ";
+    for (int i = 0; i < size; ++i) {
+        cin >> requests[i];
+    }
+
+    int head;
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    char choice;
+    cout << "Choose a disk scheduling algorithm:" << endl;
+    cout << "a) First Come First Serve (FCFS)" << endl;
+    cout << "b) Shortest Seek Time First (SSTF)" << endl;
+    cout << "c) SCAN" << endl;
+    cout << "d) Circular SCAN (C-SCAN)" << endl;
+    cin >> choice;
+
+    switch (choice) {
+        case 'a':
+            FCFS(requests, head);
+            break;
+        case 'b':
+            SSTF(requests, head);
+            break;
+        case 'c':
+            {
+                string direction;
+                cout << "Enter the direction of movement (left/right): ";
+                cin >> direction;
+                int totalHeadMovement = SCAN(requests, head, direction);
+                if (direction == "left")
+                    cout << "Total head movement using SCAN (Left): " << totalHeadMovement << endl;
+                else if (direction == "right")
+                    cout << "Total head movement using SCAN (Right): " << totalHeadMovement << endl;
+            }
+            break;
+        case 'd':
+            CSCAN(requests, head);
+            break;
+        default:
+            cout << "Invalid choice!" << endl;
+    }
+
+    return 0;
+}
+
